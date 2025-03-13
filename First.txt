@@ -1,26 +1,131 @@
-@Get('/authors')
-async getAuthorsWithBooks(): Promise<Author[]> {
-  return this.authorRepository.find({
-    include: [{ relation: 'books' }],
-  });
+Author:
+
+import {Entity, model, property, hasMany} from '@loopback/repository';
+import {Book} from './book.model';
+
+@model({settings: {strict: false}})
+export class Author extends Entity {
+  @property({
+    type: 'string',
+    id: true,
+    generated: false,
+    required: true,
+  })
+  id: string;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
+  name: string;
+
+  @hasMany(() => Book)  // Define the one-to-many relation
+  books: Book[];
+
+  constructor(data?: Partial<Author>) {
+    super(data);
+  }
 }
 
-
-
-
-@Get('/books')
-async getBooksWithDetails(): Promise<Book[]> {
-  return this.bookRepository.find({
-    include: [{ relation: 'author' }, { relation: 'category' }],
-  });
+export interface AuthorRelations {
+  books?: Book[];
 }
 
+export type AuthorWithRelations = Author & AuthorRelations;
 
 
+Category:
 
-@Get('/categories')
-async getCategoriesWithBooks(): Promise<Category[]> {
-  return this.categoryRepository.find({
-    include: [{ relation: 'books' }],
-  });
+import {Entity, model, property, hasMany} from '@loopback/repository';
+import {Book} from './book.model';
+
+@model({settings: {strict: false}})
+export class Category extends Entity {
+  @property({
+    type: 'string',
+    id: true,
+    generated: false,
+    required: true,
+  })
+  id: string;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
+  name: string;
+
+  @hasMany(() => Book)  // Define the one-to-many relation
+  books: Book[];
+
+  constructor(data?: Partial<Category>) {
+    super(data);
+  }
 }
+
+export interface CategoryRelations {
+  books?: Book[];
+}
+
+export type CategoryWithRelations = Category & CategoryRelations;
+
+
+
+Book:
+
+
+import {Entity, model, property, belongsTo} from '@loopback/repository';
+import {Author} from './author.model';
+import {Category} from './category.model';
+
+@model({settings: {strict: false}})
+export class Book extends Entity {
+  @property({
+    type: 'string',
+    id: true,
+    generated: false,
+    required: true,
+  })
+  bookId: string;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
+  title: string;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
+  isbn: string;
+
+  @property({
+    type: 'number',
+    required: true,
+  })
+  price: number;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
+  publishDate: string;
+
+  @belongsTo(() => Author)  // Define the many-to-one relation
+  authorId: string;
+
+  @belongsTo(() => Category)  // Define the many-to-one relation
+  categoryId: string;
+
+  constructor(data?: Partial<Book>) {
+    super(data);
+  }
+}
+
+export interface BookRelations {
+  author?: Author;
+  category?: Category;
+}
+
+export type BookWithRelations = Book & BookRelations;
