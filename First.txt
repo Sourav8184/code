@@ -1,131 +1,77 @@
-Author:
+import {inject, Getter} from '@loopback/core';
+import {DefaultCrudRepository, repository, HasManyRepositoryFactory} from '@loopback/repository';
+import {MysqlDataSource} from '../datasources';
+import {Author, AuthorRelations, Book} from '../models';
+import {BookRepository} from './book.repository';
 
-import {Entity, model, property, hasMany} from '@loopback/repository';
-import {Book} from './book.model';
+export class AuthorRepository extends DefaultCrudRepository<
+  Author,
+  typeof Author.prototype.id,
+  AuthorRelations
+> {
+  public readonly books: HasManyRepositoryFactory<Book, typeof Author.prototype.id>;
 
-@model({settings: {strict: false}})
-export class Author extends Entity {
-  @property({
-    type: 'string',
-    id: true,
-    generated: false,
-    required: true,
-  })
-  id: string;
-
-  @property({
-    type: 'string',
-    required: true,
-  })
-  name: string;
-
-  @hasMany(() => Book)  // Define the one-to-many relation
-  books: Book[];
-
-  constructor(data?: Partial<Author>) {
-    super(data);
+  constructor(
+    @inject('datasources.mysql') dataSource: MysqlDataSource,
+    @repository.getter('BookRepository') protected bookRepositoryGetter: Getter<BookRepository>,
+  ) {
+    super(Author, dataSource);
+    this.books = this.createHasManyRepositoryFactoryFor('books', bookRepositoryGetter);
+    this.registerInclusionResolver('books', this.books.inclusionResolver);
   }
 }
 
-export interface AuthorRelations {
-  books?: Book[];
-}
 
-export type AuthorWithRelations = Author & AuthorRelations;
+import {inject, Getter} from '@loopback/core';
+import {DefaultCrudRepository, repository, BelongsToAccessor} from '@loopback/repository';
+import {MysqlDataSource} from '../datasources';
+import {Book, BookRelations, Author, Category} from '../models';
+import {AuthorRepository} from './author.repository';
+import {CategoryRepository} from './category.repository';
 
+export class BookRepository extends DefaultCrudRepository<
+  Book,
+  typeof Book.prototype.bookId,
+  BookRelations
+> {
+  public readonly author: BelongsToAccessor<Author, typeof Book.prototype.bookId>;
+  public readonly category: BelongsToAccessor<Category, typeof Book.prototype.bookId>;
 
-Category:
+  constructor(
+    @inject('datasources.mysql') dataSource: MysqlDataSource,
+    @repository.getter('AuthorRepository') protected authorRepositoryGetter: Getter<AuthorRepository>,
+    @repository.getter('CategoryRepository') protected categoryRepositoryGetter: Getter<CategoryRepository>,
+  ) {
+    super(Book, dataSource);
 
-import {Entity, model, property, hasMany} from '@loopback/repository';
-import {Book} from './book.model';
+    this.author = this.createBelongsToAccessorFor('author', authorRepositoryGetter);
+    this.registerInclusionResolver('author', this.author.inclusionResolver);
 
-@model({settings: {strict: false}})
-export class Category extends Entity {
-  @property({
-    type: 'string',
-    id: true,
-    generated: false,
-    required: true,
-  })
-  id: string;
-
-  @property({
-    type: 'string',
-    required: true,
-  })
-  name: string;
-
-  @hasMany(() => Book)  // Define the one-to-many relation
-  books: Book[];
-
-  constructor(data?: Partial<Category>) {
-    super(data);
+    this.category = this.createBelongsToAccessorFor('category', categoryRepositoryGetter);
+    this.registerInclusionResolver('category', this.category.inclusionResolver);
   }
 }
 
-export interface CategoryRelations {
-  books?: Book[];
-}
 
-export type CategoryWithRelations = Category & CategoryRelations;
+import {inject, Getter} from '@loopback/core';
+import {DefaultCrudRepository, repository, HasManyRepositoryFactory} from '@loopback/repository';
+import {MysqlDataSource} from '../datasources';
+import {Category, CategoryRelations, Book} from '../models';
+import {BookRepository} from './book.repository';
 
+export class CategoryRepository extends DefaultCrudRepository<
+  Category,
+  typeof Category.prototype.id,
+  CategoryRelations
+> {
+  public readonly books: HasManyRepositoryFactory<Book, typeof Category.prototype.id>;
 
-
-Book:
-
-
-import {Entity, model, property, belongsTo} from '@loopback/repository';
-import {Author} from './author.model';
-import {Category} from './category.model';
-
-@model({settings: {strict: false}})
-export class Book extends Entity {
-  @property({
-    type: 'string',
-    id: true,
-    generated: false,
-    required: true,
-  })
-  bookId: string;
-
-  @property({
-    type: 'string',
-    required: true,
-  })
-  title: string;
-
-  @property({
-    type: 'string',
-    required: true,
-  })
-  isbn: string;
-
-  @property({
-    type: 'number',
-    required: true,
-  })
-  price: number;
-
-  @property({
-    type: 'string',
-    required: true,
-  })
-  publishDate: string;
-
-  @belongsTo(() => Author)  // Define the many-to-one relation
-  authorId: string;
-
-  @belongsTo(() => Category)  // Define the many-to-one relation
-  categoryId: string;
-
-  constructor(data?: Partial<Book>) {
-    super(data);
+  constructor(
+    @inject('datasources.mysql') dataSource: MysqlDataSource,
+    @repository.getter('BookRepository') protected bookRepositoryGetter: Getter<BookRepository>,
+  ) {
+    super(Category, dataSource);
+    this.books = this.createHasManyRepositoryFactoryFor('books', bookRepositoryGetter);
+    this.registerInclusionResolver('books', this.books.inclusionResolver);
   }
 }
-
-export interface BookRelations {
-  author?: Author;
-  category?: Category;
-}
-
-export type BookWithRelations = Book & BookRelations;
