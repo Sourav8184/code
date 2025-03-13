@@ -1,24 +1,22 @@
-// Fetch an author with books
-  @get('/authors/{id}/books')
-  async getAuthorWithBooks(@param.path.string('id') id: string): Promise<Author | null> {
-    return this.authorRepository.findById(id, {
-      include: [{relation: 'books'}], // Include related books
-    });
-  }
+@get('/authors')
+async getAuthorsWithBooks(): Promise<Author[]> {
+  return this.authorRepository.find({
+    include: [{ relation: 'books' }],
+  });
+}
 
 
-  // Fetch a book with author and category details
-  @get('/books/{id}/details')
-  async getBookWithDetails(@param.path.string('id') id: string): Promise<Book | null> {
-    return this.bookRepository.findById(id, {
-      include: [{relation: 'author'}, {relation: 'category'}], // Include relations
-    });
-  }
+@get('/books')
+async getBooksWithDetails(): Promise<Book[]> {
+  return this.bookRepository.find({
+    include: [{ relation: 'author' }, { relation: 'category' }],
+  });
+}
 
-  // Fetch a category with all its books
-  @get('/categories/{id}/books')
-  async getCategoryWithBooks(@param.path.string('id') id: string): Promise<Category | null> {
-    return this.categoryRepository.findById(id, {
-      include: [{relation: 'books'}], // Include related books
-    });
-  }
+
+@get('/categories')
+async getCategoriesWithBooks(): Promise<Category[]> {
+  return this.categoryRepository.find({
+    include: [{ relation: 'books' }],
+  });
+}
